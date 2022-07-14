@@ -10,27 +10,27 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP;
+namespace Grkztd\PHPIMAP;
 
 use ErrorException;
-use Webklex\PHPIMAP\Connection\Protocols\ImapProtocol;
-use Webklex\PHPIMAP\Connection\Protocols\LegacyProtocol;
-use Webklex\PHPIMAP\Connection\Protocols\Protocol;
-use Webklex\PHPIMAP\Connection\Protocols\ProtocolInterface;
-use Webklex\PHPIMAP\Exceptions\AuthFailedException;
-use Webklex\PHPIMAP\Exceptions\ConnectionFailedException;
-use Webklex\PHPIMAP\Exceptions\FolderFetchingException;
-use Webklex\PHPIMAP\Exceptions\MaskNotFoundException;
-use Webklex\PHPIMAP\Exceptions\ProtocolNotSupportedException;
-use Webklex\PHPIMAP\Support\FolderCollection;
-use Webklex\PHPIMAP\Support\Masks\AttachmentMask;
-use Webklex\PHPIMAP\Support\Masks\MessageMask;
-use Webklex\PHPIMAP\Traits\HasEvents;
+use Grkztd\PHPIMAP\Connection\Protocols\ImapProtocol;
+use Grkztd\PHPIMAP\Connection\Protocols\LegacyProtocol;
+use Grkztd\PHPIMAP\Connection\Protocols\Protocol;
+use Grkztd\PHPIMAP\Connection\Protocols\ProtocolInterface;
+use Grkztd\PHPIMAP\Exceptions\AuthFailedException;
+use Grkztd\PHPIMAP\Exceptions\ConnectionFailedException;
+use Grkztd\PHPIMAP\Exceptions\FolderFetchingException;
+use Grkztd\PHPIMAP\Exceptions\MaskNotFoundException;
+use Grkztd\PHPIMAP\Exceptions\ProtocolNotSupportedException;
+use Grkztd\PHPIMAP\Support\FolderCollection;
+use Grkztd\PHPIMAP\Support\Masks\AttachmentMask;
+use Grkztd\PHPIMAP\Support\Masks\MessageMask;
+use Grkztd\PHPIMAP\Traits\HasEvents;
 
 /**
  * Class Client
  *
- * @package Webklex\PHPIMAP
+ * @package Grkztd\PHPIMAP
  */
 class Client {
     use HasEvents;

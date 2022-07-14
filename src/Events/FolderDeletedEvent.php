@@ -10,12 +10,12 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP\Events;
+namespace Grkztd\PHPIMAP\Events;
 
 /**
  * Class FolderDeletedEvent
  *
- * @package Webklex\PHPIMAP\Events
+ * @package Grkztd\PHPIMAP\Events
  */
 class FolderDeletedEvent extends FolderNewEvent {
 

@@ -10,12 +10,12 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP\Events;
+namespace Grkztd\PHPIMAP\Events;
 
 /**
  * Class Event
  *
- * @package Webklex\PHPIMAP\Events
+ * @package Grkztd\PHPIMAP\Events
  */
 abstract class Event {
 

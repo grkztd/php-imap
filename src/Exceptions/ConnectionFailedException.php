@@ -10,14 +10,14 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP\Exceptions;
+namespace Grkztd\PHPIMAP\Exceptions;
 
 use \Exception;
 
 /**
  * Class ConnectionFailedException
  *
- * @package Webklex\PHPIMAP\Exceptions
+ * @package Grkztd\PHPIMAP\Exceptions
  */
 class ConnectionFailedException extends Exception {
 

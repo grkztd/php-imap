@@ -10,7 +10,7 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP;
+namespace Grkztd\PHPIMAP;
 
 use ArrayAccess;
 use Carbon\Carbon;
@@ -19,7 +19,7 @@ use ReturnTypeWillChange;
 /**
  * Class Attribute
  *
- * @package Webklex\PHPIMAP
+ * @package Grkztd\PHPIMAP
  */
 class Attribute implements ArrayAccess {
 

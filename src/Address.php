@@ -10,12 +10,12 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP;
+namespace Grkztd\PHPIMAP;
 
 /**
  * Class Address
  *
- * @package Webklex\PHPIMAP
+ * @package Grkztd\PHPIMAP
  */
 class Address {
 

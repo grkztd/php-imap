@@ -10,15 +10,15 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP\Connection\Protocols;
+namespace Grkztd\PHPIMAP\Connection\Protocols;
 
-use Webklex\PHPIMAP\Exceptions\ConnectionFailedException;
-use Webklex\PHPIMAP\IMAP;
+use Grkztd\PHPIMAP\Exceptions\ConnectionFailedException;
+use Grkztd\PHPIMAP\IMAP;
 
 /**
  * Class Protocol
  *
- * @package Webklex\PHPIMAP\Connection\Protocols
+ * @package Grkztd\PHPIMAP\Connection\Protocols
  */
 abstract class Protocol implements ProtocolInterface {
 

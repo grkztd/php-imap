@@ -11,12 +11,12 @@
 *  This file attempts to correct this by using a list of aliases and their mappings to supported iconv() encodings
 */
 
-namespace Webklex\PHPIMAP;
+namespace Grkztd\PHPIMAP;
 
 /**
  * Class EncodingAliases
  *
- * @package Webklex\PHPIMAP
+ * @package Grkztd\PHPIMAP
  */
 class EncodingAliases {
    
@@ -85,7 +85,9 @@ class EncodingAliases {
         "iso-2022-cn"              => "ISO-2022-CN",
         "iso-2022-cn-ext"          => "ISO-2022-CN",
         "iso-2022-kr"              => "ISO-2022-KR",
-        "iso-2022-jp"              => "ISO-2022-JP",
+        // "iso-2022-jp"              => "ISO-2022-JP",
+        "iso-2022-jp"              => "ISO-2022-JP-MS",//※改修
+        "iso-2022-jp-ms"           => "ISO-2022-JP-MS",//※追加
         "utf-16be"                 => "UTF-16BE",
         "utf-16le"                 => "UTF-16LE",
         "utf-16"                   => "UTF-16",

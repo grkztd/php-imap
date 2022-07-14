@@ -10,17 +10,17 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP;
+namespace Grkztd\PHPIMAP;
 
 use Illuminate\Support\Str;
-use Webklex\PHPIMAP\Exceptions\MaskNotFoundException;
-use Webklex\PHPIMAP\Exceptions\MethodNotFoundException;
-use Webklex\PHPIMAP\Support\Masks\AttachmentMask;
+use Grkztd\PHPIMAP\Exceptions\MaskNotFoundException;
+use Grkztd\PHPIMAP\Exceptions\MethodNotFoundException;
+use Grkztd\PHPIMAP\Support\Masks\AttachmentMask;
 
 /**
  * Class Attachment
  *
- * @package Webklex\PHPIMAP
+ * @package Grkztd\PHPIMAP
  *
  * @property integer part_number
  * @property integer size

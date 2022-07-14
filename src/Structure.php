@@ -10,16 +10,16 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP;
+namespace Grkztd\PHPIMAP;
 
 
-use Webklex\PHPIMAP\Exceptions\InvalidMessageDateException;
-use Webklex\PHPIMAP\Exceptions\MessageContentFetchingException;
+use Grkztd\PHPIMAP\Exceptions\InvalidMessageDateException;
+use Grkztd\PHPIMAP\Exceptions\MessageContentFetchingException;
 
 /**
  * Class Structure
  *
- * @package Webklex\PHPIMAP
+ * @package Grkztd\PHPIMAP
  */
 class Structure {
 

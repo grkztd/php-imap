@@ -10,33 +10,33 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP\Query;
+namespace Grkztd\PHPIMAP\Query;
 
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use ReflectionException;
-use Webklex\PHPIMAP\Client;
-use Webklex\PHPIMAP\ClientManager;
-use Webklex\PHPIMAP\Exceptions\ConnectionFailedException;
-use Webklex\PHPIMAP\Exceptions\EventNotFoundException;
-use Webklex\PHPIMAP\Exceptions\GetMessagesFailedException;
-use Webklex\PHPIMAP\Exceptions\InvalidMessageDateException;
-use Webklex\PHPIMAP\Exceptions\MessageContentFetchingException;
-use Webklex\PHPIMAP\Exceptions\MessageFlagException;
-use Webklex\PHPIMAP\Exceptions\MessageHeaderFetchingException;
-use Webklex\PHPIMAP\Exceptions\MessageNotFoundException;
-use Webklex\PHPIMAP\Exceptions\MessageSearchValidationException;
-use Webklex\PHPIMAP\Exceptions\RuntimeException;
-use Webklex\PHPIMAP\IMAP;
-use Webklex\PHPIMAP\Message;
-use Webklex\PHPIMAP\Support\MessageCollection;
+use Grkztd\PHPIMAP\Client;
+use Grkztd\PHPIMAP\ClientManager;
+use Grkztd\PHPIMAP\Exceptions\ConnectionFailedException;
+use Grkztd\PHPIMAP\Exceptions\EventNotFoundException;
+use Grkztd\PHPIMAP\Exceptions\GetMessagesFailedException;
+use Grkztd\PHPIMAP\Exceptions\InvalidMessageDateException;
+use Grkztd\PHPIMAP\Exceptions\MessageContentFetchingException;
+use Grkztd\PHPIMAP\Exceptions\MessageFlagException;
+use Grkztd\PHPIMAP\Exceptions\MessageHeaderFetchingException;
+use Grkztd\PHPIMAP\Exceptions\MessageNotFoundException;
+use Grkztd\PHPIMAP\Exceptions\MessageSearchValidationException;
+use Grkztd\PHPIMAP\Exceptions\RuntimeException;
+use Grkztd\PHPIMAP\IMAP;
+use Grkztd\PHPIMAP\Message;
+use Grkztd\PHPIMAP\Support\MessageCollection;
 
 /**
  * Class Query
  *
- * @package Webklex\PHPIMAP\Query
+ * @package Grkztd\PHPIMAP\Query
  */
 class Query {
 

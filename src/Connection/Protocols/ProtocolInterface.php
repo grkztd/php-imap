@@ -10,21 +10,21 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP\Connection\Protocols;
+namespace Grkztd\PHPIMAP\Connection\Protocols;
 
 use ErrorException;
-use Webklex\PHPIMAP\Client;
-use Webklex\PHPIMAP\Exceptions\AuthFailedException;
-use Webklex\PHPIMAP\Exceptions\ConnectionFailedException;
-use Webklex\PHPIMAP\Exceptions\InvalidMessageDateException;
-use Webklex\PHPIMAP\Exceptions\MessageNotFoundException;
-use Webklex\PHPIMAP\Exceptions\RuntimeException;
-use Webklex\PHPIMAP\IMAP;
+use Grkztd\PHPIMAP\Client;
+use Grkztd\PHPIMAP\Exceptions\AuthFailedException;
+use Grkztd\PHPIMAP\Exceptions\ConnectionFailedException;
+use Grkztd\PHPIMAP\Exceptions\InvalidMessageDateException;
+use Grkztd\PHPIMAP\Exceptions\MessageNotFoundException;
+use Grkztd\PHPIMAP\Exceptions\RuntimeException;
+use Grkztd\PHPIMAP\IMAP;
 
 /**
  * Interface ProtocolInterface
  *
- * @package Webklex\PHPIMAP\Connection\Protocols
+ * @package Grkztd\PHPIMAP\Connection\Protocols
  */
 interface ProtocolInterface {
 

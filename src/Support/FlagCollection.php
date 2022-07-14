@@ -10,12 +10,12 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP\Support;
+namespace Grkztd\PHPIMAP\Support;
 
 /**
  * Class FlagCollection
  *
- * @package Webklex\PHPIMAP\Support
+ * @package Grkztd\PHPIMAP\Support
  */
 class FlagCollection extends PaginatedCollection {
 

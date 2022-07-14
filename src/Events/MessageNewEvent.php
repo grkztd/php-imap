@@ -10,14 +10,14 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP\Events;
+namespace Grkztd\PHPIMAP\Events;
 
-use Webklex\PHPIMAP\Message;
+use Grkztd\PHPIMAP\Message;
 
 /**
  * Class MessageNewEvent
  *
- * @package Webklex\PHPIMAP\Events
+ * @package Grkztd\PHPIMAP\Events
  */
 class MessageNewEvent extends Event {
 

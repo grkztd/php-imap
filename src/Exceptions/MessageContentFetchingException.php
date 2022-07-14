@@ -10,14 +10,14 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP\Exceptions;
+namespace Grkztd\PHPIMAP\Exceptions;
 
 use \Exception;
 
 /**
  * Class MessageContentFetchingException
  *
- * @package Webklex\PHPIMAP\Exceptions
+ * @package Grkztd\PHPIMAP\Exceptions
  */
 class MessageContentFetchingException extends Exception {
 

@@ -10,12 +10,12 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP\Support;
+namespace Grkztd\PHPIMAP\Support;
 
 /**
  * Class AttachmentCollection
  *
- * @package Webklex\PHPIMAP\Support
+ * @package Grkztd\PHPIMAP\Support
  */
 class AttachmentCollection extends PaginatedCollection {
 

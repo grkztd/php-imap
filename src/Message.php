@@ -10,27 +10,27 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP;
+namespace Grkztd\PHPIMAP;
 
 use ReflectionClass;
 use ReflectionException;
-use Webklex\PHPIMAP\Exceptions\InvalidMessageDateException;
-use Webklex\PHPIMAP\Exceptions\MaskNotFoundException;
-use Webklex\PHPIMAP\Exceptions\MessageContentFetchingException;
-use Webklex\PHPIMAP\Exceptions\MessageFlagException;
-use Webklex\PHPIMAP\Exceptions\MessageHeaderFetchingException;
-use Webklex\PHPIMAP\Exceptions\MethodNotFoundException;
-use Webklex\PHPIMAP\Support\AttachmentCollection;
-use Webklex\PHPIMAP\Support\FlagCollection;
-use Webklex\PHPIMAP\Support\Masks\MessageMask;
+use Grkztd\PHPIMAP\Exceptions\InvalidMessageDateException;
+use Grkztd\PHPIMAP\Exceptions\MaskNotFoundException;
+use Grkztd\PHPIMAP\Exceptions\MessageContentFetchingException;
+use Grkztd\PHPIMAP\Exceptions\MessageFlagException;
+use Grkztd\PHPIMAP\Exceptions\MessageHeaderFetchingException;
+use Grkztd\PHPIMAP\Exceptions\MethodNotFoundException;
+use Grkztd\PHPIMAP\Support\AttachmentCollection;
+use Grkztd\PHPIMAP\Support\FlagCollection;
+use Grkztd\PHPIMAP\Support\Masks\MessageMask;
 use Illuminate\Support\Str;
-use Webklex\PHPIMAP\Support\MessageCollection;
-use Webklex\PHPIMAP\Traits\HasEvents;
+use Grkztd\PHPIMAP\Support\MessageCollection;
+use Grkztd\PHPIMAP\Traits\HasEvents;
 
 /**
  * Class Message
  *
- * @package Webklex\PHPIMAP
+ * @package Grkztd\PHPIMAP
  *
  * @property integer msglist
  * @property integer uid
@@ -698,7 +698,7 @@ class Message {
      *
      * @return mixed|string
      */
-    public function convertEncoding($str, string $from = "ISO-8859-2", string $to = "UTF-8") {
+    public function convertEncoding($str, string $from = "ISO-2022-JP-MS", string $to = "UTF-8") {
 
         $from = EncodingAliases::get($from);
         $to = EncodingAliases::get($to);
@@ -723,7 +723,8 @@ class Message {
         }
 
         if (function_exists('iconv') && $from != 'UTF-7' && $to != 'UTF-7') {
-            return @iconv($from, $to.'//IGNORE', $str);
+            return @mb_convert_encoding($str, $to, $from);//※改修
+            //return @iconv($from, $to.'//IGNORE', $str);
         } else {
             if (!$from) {
                 return mb_convert_encoding($str, $to);
@@ -742,11 +743,11 @@ class Message {
         if (property_exists($structure, 'parameters')) {
             foreach ($structure->parameters as $parameter) {
                 if (strtolower($parameter->attribute) == "charset") {
-                    return EncodingAliases::get($parameter->value, "ISO-8859-2");
+                    return EncodingAliases::get($parameter->value, "ISO-2022-JP-MS");
                 }
             }
         }elseif (property_exists($structure, 'charset')){
-            return EncodingAliases::get($structure->charset, "ISO-8859-2");
+            return EncodingAliases::get($structure->charset, "ISO-2022-JP-MS");
         }elseif (is_string($structure) === true){
             return mb_detect_encoding($structure);
         }

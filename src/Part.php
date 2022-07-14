@@ -10,15 +10,15 @@
 *  -
 */
 
-namespace Webklex\PHPIMAP;
+namespace Grkztd\PHPIMAP;
 
 
-use Webklex\PHPIMAP\Exceptions\InvalidMessageDateException;
+use Grkztd\PHPIMAP\Exceptions\InvalidMessageDateException;
 
 /**
  * Class Part
  *
- * @package Webklex\PHPIMAP
+ * @package Grkztd\PHPIMAP
  */
 class Part {
 
