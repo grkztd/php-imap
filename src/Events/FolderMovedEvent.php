@@ -1,24 +1,9 @@
 <?php
-/*
-* File:     FolderMovedEvent.php
-* Category: Event
-* Author:   M. Goldenbaum
-* Created:  25.11.20 22:21
-* Updated:  -
-*
-* Description:
-*  -
-*/
 
 namespace Grkztd\PHPIMAP\Events;
 
 use Grkztd\PHPIMAP\Folder;
 
-/**
- * Class FolderMovedEvent
- *
- * @package Grkztd\PHPIMAP\Events
- */
 class FolderMovedEvent extends Event {
 
     /** @var Folder $old_folder */

@@ -43,13 +43,13 @@ class ClientManager {
 
     /**
      * Dynamically pass calls to the default account.
-     * @param string $method
-     * @param array $parameters
+     * @param  string  $method
+     * @param  array   $parameters
      *
      * @return mixed
      * @throws Exceptions\MaskNotFoundException
      */
-    public function __call(string $method, array $parameters) {
+    public function __call($method, $parameters) {
         $callable = [$this->account(), $method];
 
         return call_user_func_array($callable, $parameters);
@@ -62,7 +62,7 @@ class ClientManager {
      * @return Client
      * @throws Exceptions\MaskNotFoundException
      */
-    public function make(array $config): Client {
+    public function make($config) {
         return new Client($config);
     }
 
@@ -73,7 +73,7 @@ class ClientManager {
      *
      * @return mixed|null
      */
-    public static function get(string $key, $default = null) {
+    public static function get($key, $default = null) {
         $parts = explode('.', $key);
         $value = null;
         foreach($parts as $part) {
@@ -97,12 +97,12 @@ class ClientManager {
 
     /**
      * Resolve a account instance.
-     * @param string|null $name
+     * @param  string  $name
      *
      * @return Client
      * @throws Exceptions\MaskNotFoundException
      */
-    public function account(string $name = null): Client {
+    public function account($name = null) {
         $name = $name ?: $this->getDefaultAccount();
 
         // If the connection has not been resolved yet we will resolve it now as all
@@ -116,13 +116,14 @@ class ClientManager {
     }
 
     /**
-     * Resolve an account.
-     * @param string $name
+     * Resolve a account.
+     *
+     * @param  string  $name
      *
      * @return Client
      * @throws Exceptions\MaskNotFoundException
      */
-    protected function resolve(string $name): Client {
+    protected function resolve($name) {
         $config = $this->getClientConfig($name);
 
         return new Client($config);
@@ -130,11 +131,11 @@ class ClientManager {
 
     /**
      * Get the account configuration.
-     * @param string|null $name
+     * @param  string  $name
      *
      * @return array
      */
-    protected function getClientConfig($name): array {
+    protected function getClientConfig($name) {
         if ($name === null || $name === 'null') {
             return ['driver' => 'null'];
         }
@@ -147,17 +148,17 @@ class ClientManager {
      *
      * @return string
      */
-    public function getDefaultAccount(): string {
+    public function getDefaultAccount() {
         return self::$config['default'];
     }
 
     /**
      * Set the name of the default account.
-     * @param string $name
+     * @param  string  $name
      *
      * @return void
      */
-    public function setDefaultAccount(string $name) {
+    public function setDefaultAccount($name) {
         self::$config['default'] = $name;
     }
 
@@ -173,7 +174,7 @@ class ClientManager {
      *
      * @return $this
      */
-    public function setConfig($config): ClientManager {
+    public function setConfig($config) {
 
         if(is_array($config) === false) {
             $config = require $config;
@@ -218,6 +219,9 @@ class ClientManager {
      * Numeric entries are appended, not replaced, but only if they are
      * unique
      *
+     * @param  array $array1 Initial array to merge.
+     * @param  array ...     Variable list of arrays to recursively merge.
+     *
      * @return array|mixed
      *
      * @link   http://www.php.net/manual/en/function.array-merge-recursive.php#96201
@@ -228,12 +232,6 @@ class ClientManager {
         $arrays = func_get_args();
         $base = array_shift($arrays);
 
-        // From https://stackoverflow.com/a/173479
-        $isAssoc = function(array $arr) {
-            if (array() === $arr) return false;
-            return array_keys($arr) !== range(0, count($arr) - 1);
-        };
-
         if(!is_array($base)) $base = empty($base) ? array() : array($base);
 
         foreach($arrays as $append) {
@@ -243,24 +241,12 @@ class ClientManager {
             foreach($append as $key => $value) {
 
                 if(!array_key_exists($key, $base) and !is_numeric($key)) {
-                    $base[$key] = $value;
+                    $base[$key] = $append[$key];
                     continue;
                 }
 
-                if(
-                    (
-                        is_array($value)
-                        && $isAssoc($value)
-                    )
-                    || (
-                        is_array($base[$key])
-                        && $isAssoc($base[$key])
-                    )
-                ) {
-                    // If the arrays are not associates we don't want to array_merge_recursive_distinct
-                    // else merging $baseConfig['dispositions'] = ['attachment', 'inline'] with $customConfig['dispositions'] = ['attachment']
-                    // results in $resultConfig['dispositions'] = ['attachment', 'inline']
-                    $base[$key] = $this->array_merge_recursive_distinct($base[$key], $value);
+                if(is_array($value) or is_array($base[$key])) {
+                    $base[$key] = $this->array_merge_recursive_distinct($base[$key], $append[$key]);
                 } else if(is_numeric($key)) {
                     if(!in_array($value, $base)) $base[] = $value;
                 } else {

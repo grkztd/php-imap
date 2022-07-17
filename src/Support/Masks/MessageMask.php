@@ -75,7 +75,7 @@ class MessageMask extends Mask {
      */
     public function getHTMLBodyWithEmbeddedBase64Images() {
         return $this->getCustomHTMLBody(function($body, $oAttachment){
-            /** @var Attachment $oAttachment */
+            /** @var \Grkztd\PHPIMAP\Attachment $oAttachment */
             if ($oAttachment->id) {
                 $body = str_replace('cid:'.$oAttachment->id, 'data:'.$oAttachment->getContentType().';base64, '.base64_encode($oAttachment->getContent()), $body);
             }

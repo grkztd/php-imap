@@ -52,7 +52,7 @@ class Address {
      * @return string
      */
     public function __toString() {
-        return $this->full ?: "";
+        return $this->full ? $this->full : "";
     }
 
     /**
@@ -75,7 +75,7 @@ class Address {
      *
      * @return array
      */
-    public function toArray(): array {
+    public function toArray(){
         return $this->__serialize();
     }
 
@@ -84,7 +84,7 @@ class Address {
      *
      * @return string
      */
-    public function toString(): string {
+    public function toString(){
         return $this->__toString();
     }
 }

@@ -34,7 +34,7 @@ class AttachmentMask extends Mask {
     }
 
     /**
-     * Get a base64 image src string
+     * Get an base64 image src string
      *
      * @return string|null
      */

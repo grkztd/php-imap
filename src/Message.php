@@ -12,8 +12,7 @@
 
 namespace Grkztd\PHPIMAP;
 
-use ReflectionClass;
-use ReflectionException;
+use Carbon\Carbon;
 use Grkztd\PHPIMAP\Exceptions\InvalidMessageDateException;
 use Grkztd\PHPIMAP\Exceptions\MaskNotFoundException;
 use Grkztd\PHPIMAP\Exceptions\MessageContentFetchingException;
@@ -35,35 +34,49 @@ use Grkztd\PHPIMAP\Traits\HasEvents;
  * @property integer msglist
  * @property integer uid
  * @property integer msgn
- * @property Attribute subject
- * @property Attribute message_id
- * @property Attribute message_no
- * @property Attribute references
- * @property Attribute date
- * @property Attribute from
- * @property Attribute to
- * @property Attribute cc
- * @property Attribute bcc
- * @property Attribute reply_to
- * @property Attribute in_reply_to
- * @property Attribute sender
+ * @property string subject
+ * @property string message_id
+ * @property string message_no
+ * @property string references
+ * @property carbon date
+ * @property array from
+ * @property array to
+ * @property array cc
+ * @property array bcc
+ * @property array reply_to
+ * @property array in_reply_to
+ * @property array sender
  *
  * @method integer getMsglist()
- * @method integer setMsglist($msglist)
+ * @method integer setMsglist(integer $msglist)
  * @method integer getUid()
  * @method integer getMsgn()
- * @method Attribute getPriority()
- * @method Attribute getSubject()
- * @method Attribute getMessageId()
- * @method Attribute getReferences()
- * @method Attribute getDate()
- * @method Attribute getFrom()
- * @method Attribute getTo()
- * @method Attribute getCc()
- * @method Attribute getBcc()
- * @method Attribute getReplyTo()
- * @method Attribute getInReplyTo()
- * @method Attribute getSender()
+ * @method integer getPriority()
+ * @method integer setPriority(integer $priority)
+ * @method string getSubject()
+ * @method string setSubject(string $subject)
+ * @method string getMessageId()
+ * @method string setMessageId(string $message_id)
+ * @method string getMessageNo()
+ * @method string setMessageNo(string $message_no)
+ * @method string getReferences()
+ * @method string setReferences(string $references)
+ * @method carbon getDate()
+ * @method carbon setDate(carbon $date)
+ * @method array getFrom()
+ * @method array setFrom(array $from)
+ * @method array getTo()
+ * @method array setTo(array $to)
+ * @method array getCc()
+ * @method array setCc(array $cc)
+ * @method array getBcc()
+ * @method array setBcc(array $bcc)
+ * @method array getReplyTo()
+ * @method array setReplyTo(array $reply_to)
+ * @method array getInReplyTo()
+ * @method array setInReplyTo(array $in_reply_to)
+ * @method array getSender()
+ * @method array setSender(array $sender)
  */
 class Message {
     use HasEvents;
@@ -92,9 +105,11 @@ class Message {
     /**
      * Attribute holder
      *
-     * @var Attribute[]|array $attributes
+     * @var array $attributes
      */
-    protected $attributes = [];
+    protected $attributes = [
+        'message_no' => null,
+    ];
 
     /**
      * The message folder path
@@ -152,14 +167,12 @@ class Message {
      * Message body components
      *
      * @var array   $bodies
+     * @var AttachmentCollection|array $attachments
+     * @var FlagCollection|array       $flags
      */
     public $bodies = [];
-
-    /** @var AttachmentCollection $attachments */
-    public $attachments;
-
-    /** @var FlagCollection $flags */
-    public $flags;
+    public $attachments = [];
+    public $flags = [];
 
     /**
      * A list of all available and supported flags
@@ -176,7 +189,7 @@ class Message {
      * @param integer|null $fetch_options
      * @param boolean $fetch_body
      * @param boolean $fetch_flags
-     * @param integer|null $sequence
+     * @param integer $sequence
      *
      * @throws Exceptions\ConnectionFailedException
      * @throws InvalidMessageDateException
@@ -185,10 +198,8 @@ class Message {
      * @throws MessageContentFetchingException
      * @throws Exceptions\EventNotFoundException
      * @throws MessageFlagException
-     * @throws Exceptions\MessageNotFoundException
      */
-    public function __construct(int $uid, $msglist, Client $client, int $fetch_options = null, bool $fetch_body = false, bool $fetch_flags = false, int $sequence = null) {
-        $this->boot();
+    public function __construct($uid, $msglist, Client $client, $fetch_options = null, $fetch_body = false, $fetch_flags = false, $sequence = null) {
 
         $default_mask = $client->getDefaultMessageMask();
         if($default_mask != null) {
@@ -199,10 +210,16 @@ class Message {
 
         $this->folder_path = $client->getFolderPath();
 
+        $this->config = ClientManager::get('options');
+        $this->available_flags = ClientManager::get('flags');
+
         $this->setSequence($sequence);
         $this->setFetchOption($fetch_options);
         $this->setFetchBodyOption($fetch_body);
         $this->setFetchFlagsOption($fetch_flags);
+
+        $this->attachments = AttachmentCollection::make([]);
+        $this->flags = FlagCollection::make([]);
 
         $this->client = $client;
         $this->client->openFolder($this->folder_path);
@@ -231,7 +248,7 @@ class Message {
      * @param Client $client
      * @param string $raw_header
      * @param string $raw_body
-     * @param array $raw_flags
+     * @param string $raw_flags
      * @param null $fetch_options
      * @param null $sequence
      *
@@ -240,16 +257,14 @@ class Message {
      * @throws Exceptions\EventNotFoundException
      * @throws InvalidMessageDateException
      * @throws MessageContentFetchingException
-     * @throws ReflectionException
+     * @throws \ReflectionException
      * @throws MessageFlagException
      * @throws Exceptions\RuntimeException
-     * @throws Exceptions\MessageNotFoundException
      */
-    public static function make(int $uid, $msglist, Client $client, string $raw_header, string $raw_body, array $raw_flags, $fetch_options = null, $sequence = null): Message {
-        $reflection = new ReflectionClass(self::class);
+    public static function make($uid, $msglist, Client $client, $raw_header, $raw_body, $raw_flags, $fetch_options = null, $sequence = null){
+        $reflection = new \ReflectionClass(self::class);
         /** @var self $instance */
         $instance = $reflection->newInstanceWithoutConstructor();
-        $instance->boot();
 
         $default_mask = $client->getDefaultMessageMask();
         if($default_mask != null) {
@@ -260,8 +275,12 @@ class Message {
             "flag" => $client->getDefaultEvents("flag"),
         ]);
         $instance->setFolderPath($client->getFolderPath());
+        $instance->setConfig(ClientManager::get('options'));
+        $instance->setAvailableFlags(ClientManager::get('flags'));
         $instance->setSequence($sequence);
         $instance->setFetchOption($fetch_options);
+
+        $instance->setAttachments(AttachmentCollection::make([]));
 
         $instance->setClient($client);
         $instance->setSequenceId($uid, $msglist);
@@ -275,19 +294,6 @@ class Message {
     }
 
     /**
-     * Boot a new instance
-     */
-    public function boot(){
-        $this->attributes = [];
-
-        $this->config = ClientManager::get('options');
-        $this->available_flags = ClientManager::get('flags');
-
-        $this->attachments = AttachmentCollection::make([]);
-        $this->flags = FlagCollection::make([]);
-    }
-
-    /**
      * Call dynamic attribute setter and getter methods
      * @param string $method
      * @param array $arguments
@@ -295,7 +301,7 @@ class Message {
      * @return mixed
      * @throws MethodNotFoundException
      */
-    public function __call(string $method, array $arguments) {
+    public function __call($method, $arguments) {
         if(strtolower(substr($method, 0, 3)) === 'get') {
             $name = Str::snake(substr($method, 3));
             return $this->get($name);
@@ -328,7 +334,7 @@ class Message {
      * Magic getter
      * @param $name
      *
-     * @return Attribute|mixed|null
+     * @return mixed|null
      */
     public function __get($name) {
         return $this->get($name);
@@ -338,7 +344,7 @@ class Message {
      * Get an available message or message header attribute
      * @param $name
      *
-     * @return Attribute|mixed|null
+     * @return mixed|null
      */
     public function get($name) {
         if(isset($this->attributes[$name])) {
@@ -353,7 +359,7 @@ class Message {
      *
      * @return bool
      */
-    public function hasTextBody(): bool {
+    public function hasTextBody() {
         return isset($this->bodies['text']);
     }
 
@@ -375,7 +381,7 @@ class Message {
      *
      * @return bool
      */
-    public function hasHTMLBody(): bool {
+    public function hasHTMLBody() {
         return isset($this->bodies['html']);
     }
 
@@ -415,15 +421,15 @@ class Message {
      *
      * @throws InvalidMessageDateException
      */
-    public function parseRawHeader(string $raw_header){
+    public function parseRawHeader($raw_header){
         $this->header = new Header($raw_header);
     }
 
     /**
      * Parse additional raw flags
-     * @param array $raw_flags
+     * @param $raw_flags
      */
-    public function parseRawFlags(array $raw_flags) {
+    public function parseRawFlags($raw_flags) {
         $this->flags = FlagCollection::make([]);
 
         foreach($raw_flags as $flag) {
@@ -431,7 +437,7 @@ class Message {
                 $flag = substr($flag, 1);
             }
             $flag_key = strtolower($flag);
-            if ($this->available_flags === null || in_array($flag_key, $this->available_flags)) {
+            if (in_array($flag_key, $this->available_flags) || $this->available_flags === null) {
                 $this->flags->put($flag_key, $flag);
             }
         }
@@ -472,7 +478,7 @@ class Message {
      * @throws MessageFlagException
      * @throws Exceptions\RuntimeException
      */
-    public function parseBody(): Message {
+    public function parseBody() {
         $this->client->openFolder($this->folder_path);
 
         $sequence_id = $this->getSequenceId();
@@ -520,7 +526,7 @@ class Message {
      * @throws MessageContentFetchingException
      * @throws Exceptions\RuntimeException
      */
-    public function parseRawBody(string $raw_body): Message {
+    public function parseRawBody($raw_body) {
         $this->structure = new Structure($raw_body, $this->header);
         $this->fetchStructure($this->structure);
 
@@ -534,7 +540,7 @@ class Message {
      * @throws Exceptions\ConnectionFailedException
      * @throws Exceptions\RuntimeException
      */
-    private function fetchStructure(Structure $structure) {
+    private function fetchStructure($structure) {
         $this->client->openFolder($this->folder_path);
 
         foreach ($structure->parts as $part) {
@@ -569,7 +575,7 @@ class Message {
                 $content = $this->convertEncoding($content, $encoding);
             }
 
-            $subtype = strtolower($part->subtype ?? '');
+            $subtype = strtolower($part->subtype);
             $subtype = $subtype == "plain" || $subtype == "" ? "text" : $subtype;
 
             if (isset($this->bodies[$subtype])) {
@@ -584,7 +590,7 @@ class Message {
      * Fetch the Message attachment
      * @param Part $part
      */
-    protected function fetchAttachment(Part $part) {
+    protected function fetchAttachment($part) {
         $oAttachment = new Attachment($this, $part);
 
         if ($oAttachment->getName() !== null && $oAttachment->getSize() > 0) {
@@ -602,7 +608,7 @@ class Message {
      *
      * @return $this
      */
-    public function setFetchOption($option): Message {
+    public function setFetchOption($option) {
         if (is_long($option) === true) {
             $this->fetch_options = $option;
         } elseif (is_null($option) === true) {
@@ -615,11 +621,11 @@ class Message {
 
     /**
      * Set the sequence type
-     * @param int|null $sequence
+     * @param int $sequence
      *
      * @return $this
      */
-    public function setSequence($sequence): Message {
+    public function setSequence($sequence) {
         if (is_long($sequence)) {
             $this->sequence = $sequence;
         } elseif (is_null($sequence)) {
@@ -636,7 +642,7 @@ class Message {
      *
      * @return $this
      */
-    public function setFetchBodyOption($option): Message {
+    public function setFetchBodyOption($option) {
         if (is_bool($option)) {
             $this->fetch_body = $option;
         } elseif (is_null($option)) {
@@ -653,7 +659,7 @@ class Message {
      *
      * @return $this
      */
-    public function setFetchFlagsOption($option): Message {
+    public function setFetchFlagsOption($option) {
         if (is_bool($option)) {
             $this->fetch_flags = $option;
         } elseif (is_null($option)) {
@@ -671,7 +677,7 @@ class Message {
      *
      * @return string
      */
-    public function decodeString($string, $encoding): string {
+    public function decodeString($string, $encoding) {
         switch ($encoding) {
             case IMAP::MESSAGE_ENC_BINARY:
                 if (extension_loaded('imap')) {
@@ -680,9 +686,9 @@ class Message {
                 return base64_decode($string);
             case IMAP::MESSAGE_ENC_BASE64:
                 return base64_decode($string);
+            case IMAP::MESSAGE_ENC_8BIT:
             case IMAP::MESSAGE_ENC_QUOTED_PRINTABLE:
                 return quoted_printable_decode($string);
-            case IMAP::MESSAGE_ENC_8BIT:
             case IMAP::MESSAGE_ENC_7BIT:
             case IMAP::MESSAGE_ENC_OTHER:
             default:
@@ -698,7 +704,7 @@ class Message {
      *
      * @return mixed|string
      */
-    public function convertEncoding($str, string $from = "ISO-2022-JP-MS", string $to = "UTF-8") {
+    public function convertEncoding($str, $from = "ISO-2022-JP-MS", $to = "UTF-8") {
 
         $from = EncodingAliases::get($from);
         $to = EncodingAliases::get($to);
@@ -718,7 +724,7 @@ class Message {
         //     https://en.wikipedia.org/wiki/ASCII
         //
         // convertEncoding() function basically means convertToUtf8(), so when we convert ASCII string into UTF-8 it gets broken.
-        if (strtolower($from ?? '') == 'us-ascii' && $to == 'UTF-8') {
+        if (strtolower($from) == 'us-ascii' && $to == 'UTF-8') {
             return $str;
         }
 
@@ -735,11 +741,11 @@ class Message {
 
     /**
      * Get the encoding of a given abject
-     * @param string|object $structure
+     * @param object|string $structure
      *
-     * @return string|null
+     * @return string
      */
-    public function getEncoding($structure): string {
+    public function getEncoding($structure) {
         if (property_exists($structure, 'parameters')) {
             foreach ($structure->parameters as $parameter) {
                 if (strtolower($parameter->attribute) == "charset") {
@@ -764,7 +770,7 @@ class Message {
      * @throws Exceptions\RuntimeException
      */
     public function getFolder(){
-        return $this->client->getFolderByPath($this->folder_path);
+        return $this->client->getFolder($this->folder_path);
     }
 
     /**
@@ -779,14 +785,14 @@ class Message {
      * @throws Exceptions\GetMessagesFailedException
      * @throws Exceptions\RuntimeException
      */
-    public function thread(Folder $sent_folder = null, MessageCollection &$thread = null, Folder $folder = null): MessageCollection {
-        $thread = $thread ?: MessageCollection::make([]);
-        $folder = $folder ?:  $this->getFolder();
-        $sent_folder = $sent_folder ?: $this->client->getFolderByPath(ClientManager::get("options.common_folders.sent", "INBOX/Sent"));
+    public function thread($sent_folder = null, &$thread = null, $folder = null){
+        $thread = $thread ? $thread : MessageCollection::make([]);
+        $folder = $folder ? $folder :  $this->getFolder();
+        $sent_folder = $sent_folder ? $sent_folder : $this->client->getFolder(ClientManager::get("options.common_folders.sent", "INBOX/Sent"));
 
         /** @var Message $message */
         foreach($thread as $message) {
-            if ($message->message_id->first() == $this->message_id->first()) {
+            if ($message->message_id == $this->message_id) {
                 return $thread;
             }
         }
@@ -816,9 +822,8 @@ class Message {
      * @throws Exceptions\ConnectionFailedException
      * @throws Exceptions\GetMessagesFailedException
      * @throws Exceptions\RuntimeException
-     * @throws Exceptions\FolderFetchingException
      */
-    protected function fetchThreadByInReplyTo(MessageCollection &$thread, string $in_reply_to, Folder $primary_folder, Folder $secondary_folder, Folder $sent_folder){
+    protected function fetchThreadByInReplyTo(&$thread, $in_reply_to, $primary_folder, $secondary_folder, $sent_folder){
         $primary_folder->query()->inReplyTo($in_reply_to)
         ->setFetchBody($this->getFetchBodyOption())
         ->leaveUnread()->get()->each(function($message) use(&$thread, $secondary_folder, $sent_folder){
@@ -838,9 +843,8 @@ class Message {
      * @throws Exceptions\ConnectionFailedException
      * @throws Exceptions\GetMessagesFailedException
      * @throws Exceptions\RuntimeException
-     * @throws Exceptions\FolderFetchingException
      */
-    protected function fetchThreadByMessageId(MessageCollection &$thread, string $message_id, Folder $primary_folder, Folder $secondary_folder, Folder $sent_folder){
+    protected function fetchThreadByMessageId(&$thread, $message_id, $primary_folder, $secondary_folder, $sent_folder){
         $primary_folder->query()->messageId($message_id)
         ->setFetchBody($this->getFetchBodyOption())
         ->leaveUnread()->get()->each(function($message) use(&$thread, $secondary_folder, $sent_folder){
@@ -863,9 +867,8 @@ class Message {
      * @throws MessageHeaderFetchingException
      * @throws Exceptions\EventNotFoundException
      * @throws MessageFlagException
-     * @throws Exceptions\MessageNotFoundException
      */
-    public function copy(string $folder_path, bool $expunge = false) {
+    public function copy($folder_path, $expunge = false) {
         $this->client->openFolder($folder_path);
         $status = $this->client->getConnection()->examineFolder($folder_path);
 
@@ -873,7 +876,7 @@ class Message {
             $next_uid = $status["uidnext"];
 
             /** @var Folder $folder */
-            $folder = $this->client->getFolderByPath($folder_path);
+            $folder = $this->client->getFolder($folder_path);
 
             $this->client->openFolder($this->folder_path);
             if ($this->client->getConnection()->copyMessage($folder->path, $this->getSequenceId(), null, $this->sequence === IMAP::ST_UID) == true) {
@@ -898,9 +901,8 @@ class Message {
      * @throws MessageHeaderFetchingException
      * @throws Exceptions\EventNotFoundException
      * @throws MessageFlagException
-     * @throws Exceptions\MessageNotFoundException
      */
-    public function move(string $folder_path, bool $expunge = false) {
+    public function move($folder_path, $expunge = false) {
         $this->client->openFolder($folder_path);
         $status = $this->client->getConnection()->examineFolder($folder_path);
 
@@ -908,7 +910,7 @@ class Message {
             $next_uid = $status["uidnext"];
 
             /** @var Folder $folder */
-            $folder = $this->client->getFolderByPath($folder_path);
+            $folder = $this->client->getFolder($folder_path);
 
             $this->client->openFolder($this->folder_path);
             if ($this->client->getConnection()->moveMessage($folder->path, $this->getSequenceId(), null, $this->sequence === IMAP::ST_UID) == true) {
@@ -926,17 +928,16 @@ class Message {
      * @param string $event
      * @param boolean $expunge
      *
-     * @return Message
+     * @return mixed
      * @throws Exceptions\ConnectionFailedException
      * @throws Exceptions\EventNotFoundException
-     * @throws Exceptions\MessageNotFoundException
      * @throws Exceptions\RuntimeException
      * @throws InvalidMessageDateException
      * @throws MessageContentFetchingException
      * @throws MessageFlagException
      * @throws MessageHeaderFetchingException
      */
-    protected function fetchNewMail(Folder $folder, int $next_uid, string $event, bool $expunge): Message {
+    protected function fetchNewMail($folder, $next_uid, $event, $expunge){
         if($expunge) $this->client->expunge();
 
         $this->client->openFolder($folder->path);
@@ -957,26 +958,15 @@ class Message {
     /**
      * Delete the current Message
      * @param bool $expunge
-     * @param string|null $trash_path
-     * @param boolean $force_move
      *
      * @return bool
      * @throws Exceptions\ConnectionFailedException
      * @throws Exceptions\EventNotFoundException
-     * @throws Exceptions\FolderFetchingException
-     * @throws Exceptions\MessageNotFoundException
-     * @throws Exceptions\RuntimeException
-     * @throws InvalidMessageDateException
-     * @throws MessageContentFetchingException
      * @throws MessageFlagException
-     * @throws MessageHeaderFetchingException
+     * @throws Exceptions\RuntimeException
      */
-    public function delete(bool $expunge = true, string $trash_path = null, bool $force_move = false) {
+    public function delete($expunge = true) {
         $status = $this->setFlag("Deleted");
-        if($force_move) {
-            $trash_path = $trash_path === null ? $this->config["common_folders"]["trash"]: $trash_path;
-            $status = $this->move($trash_path);
-        }
         if($expunge) $this->client->expunge();
 
         $event = $this->getEvent("message", "deleted");
@@ -995,7 +985,7 @@ class Message {
      * @throws MessageFlagException
      * @throws Exceptions\RuntimeException
      */
-    public function restore(bool $expunge = true): bool {
+    public function restore($expunge = true) {
         $status = $this->unsetFlag("Deleted");
         if($expunge) $this->client->expunge();
 
@@ -1015,7 +1005,7 @@ class Message {
      * @throws Exceptions\EventNotFoundException
      * @throws Exceptions\RuntimeException
      */
-    public function setFlag($flag): bool {
+    public function setFlag($flag) {
         $this->client->openFolder($this->folder_path);
         $flag = "\\".trim(is_array($flag) ? implode(" \\", $flag) : $flag);
         $sequence_id = $this->getSequenceId();
@@ -1042,7 +1032,7 @@ class Message {
      * @throws MessageFlagException
      * @throws Exceptions\RuntimeException
      */
-    public function unsetFlag($flag): bool {
+    public function unsetFlag($flag) {
         $this->client->openFolder($this->folder_path);
 
         $flag = "\\".trim(is_array($flag) ? implode(" \\", $flag) : $flag);
@@ -1070,7 +1060,7 @@ class Message {
      * @throws Exceptions\EventNotFoundException
      * @throws Exceptions\RuntimeException
      */
-    public function addFlag($flag): bool {
+    public function addFlag($flag) {
         return $this->setFlag($flag);
     }
 
@@ -1084,7 +1074,7 @@ class Message {
      * @throws MessageFlagException
      * @throws Exceptions\RuntimeException
      */
-    public function removeFlag($flag): bool {
+    public function removeFlag($flag) {
         return $this->unsetFlag($flag);
     }
 
@@ -1093,7 +1083,7 @@ class Message {
      *
      * @return AttachmentCollection
      */
-    public function getAttachments(): AttachmentCollection {
+    public function getAttachments() {
         return $this->attachments;
     }
 
@@ -1102,7 +1092,7 @@ class Message {
      *
      * @return AttachmentCollection
      */
-    public function attachments(): AttachmentCollection {
+    public function attachments(){
         return $this->getAttachments();
     }
 
@@ -1111,7 +1101,7 @@ class Message {
      *
      * @return boolean
      */
-    public function hasAttachments(): bool {
+    public function hasAttachments() {
         return $this->attachments->isEmpty() === false;
     }
 
@@ -1146,7 +1136,7 @@ class Message {
      *
      * @return Client
      */
-    public function getClient(): Client {
+    public function getClient() {
         return $this->client;
     }
 
@@ -1182,7 +1172,7 @@ class Message {
      *
      * @return array
      */
-    public function getBodies(): array {
+    public function getBodies() {
         return $this->bodies;
     }
 
@@ -1191,7 +1181,7 @@ class Message {
      *
      * @return FlagCollection
      */
-    public function getFlags(): FlagCollection {
+    public function getFlags() {
         return $this->flags;
     }
 
@@ -1200,7 +1190,7 @@ class Message {
      *
      * @return FlagCollection
      */
-    public function flags(): FlagCollection {
+    public function flags(){
         return $this->getFlags();
     }
 
@@ -1219,15 +1209,15 @@ class Message {
      * @param  null|Message $message
      * @return boolean
      */
-    public function is(Message $message = null): bool {
+    public function is(Message $message = null) {
         if (is_null($message)) {
             return false;
         }
 
         return $this->uid == $message->uid
-            && $this->message_id->first() == $message->message_id->first()
-            && $this->subject->first() == $message->subject->first()
-            && $this->date->toDate()->eq($message->date);
+            && $this->message_id == $message->message_id
+            && $this->subject == $message->subject
+            && $this->date->eq($message->date);
     }
 
     /**
@@ -1235,7 +1225,7 @@ class Message {
      *
      * @return array
      */
-    public function getAttributes(): array {
+    public function getAttributes(){
         return array_merge($this->attributes, $this->header->getAttributes());
     }
 
@@ -1245,7 +1235,7 @@ class Message {
      *
      * @return $this
      */
-    public function setMask($mask): Message {
+    public function setMask($mask){
         if(class_exists($mask)){
             $this->mask = $mask;
         }
@@ -1258,13 +1248,13 @@ class Message {
      *
      * @return string
      */
-    public function getMask(): string {
+    public function getMask(){
         return $this->mask;
     }
 
     /**
      * Get a masked instance by providing a mask name
-     * @param string|mixed $mask
+     * @param string|null $mask
      *
      * @return mixed
      * @throws MaskNotFoundException
@@ -1279,21 +1269,12 @@ class Message {
     }
 
     /**
-     * Get the message path aka folder path
-     *
-     * @return string
-     */
-    public function getFolderPath(): string {
-        return $this->folder_path;
-    }
-
-    /**
      * Set the message path aka folder path
      * @param $folder_path
      *
      * @return $this
      */
-    public function setFolderPath($folder_path): Message {
+    public function setFolderPath($folder_path){
         $this->folder_path = $folder_path;
 
         return $this;
@@ -1305,7 +1286,7 @@ class Message {
      *
      * @return $this
      */
-    public function setConfig($config): Message {
+    public function setConfig($config){
         $this->config = $config;
 
         return $this;
@@ -1317,7 +1298,7 @@ class Message {
      *
      * @return $this
      */
-    public function setAvailableFlags($available_flags): Message {
+    public function setAvailableFlags($available_flags){
         $this->available_flags = $available_flags;
 
         return $this;
@@ -1329,7 +1310,7 @@ class Message {
      *
      * @return $this
      */
-    public function setAttachments($attachments): Message {
+    public function setAttachments($attachments){
         $this->attachments = $attachments;
 
         return $this;
@@ -1341,7 +1322,7 @@ class Message {
      *
      * @return $this
      */
-    public function setFlags($flags): Message {
+    public function setFlags($flags){
         $this->flags = $flags;
 
         return $this;
@@ -1355,7 +1336,7 @@ class Message {
      * @throws Exceptions\RuntimeException
      * @throws Exceptions\ConnectionFailedException
      */
-    public function setClient($client): Message {
+    public function setClient($client){
         $this->client = $client;
         $this->client->openFolder($this->folder_path);
 
@@ -1366,11 +1347,11 @@ class Message {
      * Set the message number
      * @param int $uid
      *
-     * @return $this
-     * @throws Exceptions\MessageNotFoundException
      * @throws Exceptions\ConnectionFailedException
+     * @throws Exceptions\RuntimeException
+     * @return $this
      */
-    public function setUid(int $uid): Message {
+    public function setUid($uid){
         $this->uid = $uid;
         $this->msgn = $this->client->getConnection()->getMessageNumber($this->uid);
         $this->msglist = null;
@@ -1380,14 +1361,14 @@ class Message {
 
     /**
      * Set the message number
-     * @param int $msgn
+     * @param $msgn
      * @param int|null $msglist
      *
-     * @return $this
-     * @throws Exceptions\MessageNotFoundException
      * @throws Exceptions\ConnectionFailedException
+     * @throws Exceptions\RuntimeException
+     * @return $this
      */
-    public function setMsgn(int $msgn, int $msglist = null): Message {
+    public function setMsgn($msgn, $msglist = null){
         $this->msgn = $msgn;
         $this->msglist = $msglist;
         $this->uid = $this->client->getConnection()->getUid($this->msgn);
@@ -1400,7 +1381,7 @@ class Message {
      *
      * @return int
      */
-    public function getSequence(): int {
+    public function getSequence(){
         return $this->sequence;
     }
 
@@ -1409,7 +1390,7 @@ class Message {
      *
      * @return int
      */
-    public function getSequenceId(): int {
+    public function getSequenceId(){
         return $this->sequence === IMAP::ST_UID ? $this->uid : $this->msgn;
     }
 
@@ -1419,9 +1400,9 @@ class Message {
      * @param int|null $msglist
      *
      * @throws Exceptions\ConnectionFailedException
-     * @throws Exceptions\MessageNotFoundException
+     * @throws Exceptions\RuntimeException
      */
-    public function setSequenceId($uid, int $msglist = null){
+    public function setSequenceId($uid, $msglist = null){
         if ($this->getSequence() === IMAP::ST_UID) {
             $this->setUid($uid);
             $this->setMsglist($msglist);

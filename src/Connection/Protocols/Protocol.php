@@ -13,14 +13,13 @@
 namespace Grkztd\PHPIMAP\Connection\Protocols;
 
 use Grkztd\PHPIMAP\Exceptions\ConnectionFailedException;
-use Grkztd\PHPIMAP\IMAP;
 
 /**
  * Class Protocol
  *
  * @package Grkztd\PHPIMAP\Connection\Protocols
  */
-abstract class Protocol implements ProtocolInterface {
+abstract class Protocol {
 
     /**
      * Default connection timeout in seconds
@@ -31,11 +30,6 @@ abstract class Protocol implements ProtocolInterface {
      * @var boolean
      */
     protected $debug = false;
-
-    /**
-     * @var boolean
-     */
-    protected $enable_uid_cache = true;
 
     /**
      * @var false|resource
@@ -64,13 +58,6 @@ abstract class Protocol implements ProtocolInterface {
         'username' => null,
         'password' => null,
     ];
-
-    /**
-     * Cache for uid of active folder.
-     *
-     * @var null|array
-     */
-    protected $uid_cache = null;
 
     /**
      * Get an available cryptographic method
@@ -196,6 +183,7 @@ abstract class Protocol implements ProtocolInterface {
      *
      * @return resource|boolean The socket created.
      * @throws ConnectionFailedException
+     * @throws \ErrorException
      */
     protected function createStream($transport, $host, $port, $timeout) {
         $socket = "$transport://$host:$port";
@@ -203,9 +191,10 @@ abstract class Protocol implements ProtocolInterface {
             STREAM_CLIENT_CONNECT,
             stream_context_create($this->defaultSocketOptions($transport))
         );
+        stream_set_timeout($stream, $timeout);
 
         if (!$stream) {
-            throw new ConnectionFailedException($errstr, $errno);
+            throw new ConnectionFailedException("Failed to connect to host", 0, $error);
         }
 
         if (false === stream_set_timeout($stream, $timeout)) {
@@ -233,53 +222,4 @@ abstract class Protocol implements ProtocolInterface {
         return $this;
     }
 
-    /**
-     * Get the UID key string
-     * @param int|string $uid
-     *
-     * @return string
-     */
-    public function getUIDKey($uid) {
-        if ($uid == IMAP::ST_UID || $uid == IMAP::FT_UID) {
-            return "UID";
-        }
-        if (strlen($uid) > 0 && !is_numeric($uid)) {
-            return (string)$uid;
-        }
-
-        return "";
-    }
-
-    public function buildUIDCommand($command, $uid) {
-        return trim($this->getUIDKey($uid)." ".$command);
-    }
-
-    /**
-     * Set the uid cache of current active folder
-     *
-     * @param array|null $uids
-     */
-    public function setUidCache($uids) {
-        if (is_null($uids)) {
-            $this->uid_cache = null;
-            return;
-        }
-
-        $messageNumber = 1;
-
-        $uid_cache = [];
-        foreach ($uids as $uid) {
-            $uid_cache[$messageNumber++] = $uid;
-        }
-
-        $this->uid_cache = $uid_cache;
-    }
-
-    public function enableUidCache() {
-        $this->enable_uid_cache = true;
-    }
-
-    public function disableUidCache() {
-        $this->enable_uid_cache = false;
-    }
 }
