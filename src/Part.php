@@ -172,7 +172,13 @@ class Part {
 
         $this->charset = $this->header->get("charset");
         $this->name = $this->header->get("name");
-        $this->filename = $this->header->get("filename");
+        if($this->header->get("filename*") !== null){
+            $str = $this->header->get("filename*");
+            $chunk = explode("''",$str);
+            $this->filename = urldecode(mb_convert_encoding($chunk[1], "UTF-8", $chunk[0]));// GR RFC2231に対応
+        }else{
+            $this->filename = $this->header->get("filename");
+        }
 
         if(!empty($this->header->get("id"))) {
             $this->id = $this->header->get("id");
