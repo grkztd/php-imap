@@ -466,8 +466,13 @@ class Header {
                 if ($this->notDecoded($original_value, $value)) {
                     $decoded_value = $this->mime_header_decode($value);
                     if (count($decoded_value) > 0) {
-                        if(property_exists($decoded_value[0], "text")) {
-                            $value = $decoded_value[0]->text;
+                        if(property_exists($decoded_value[0], "text")) {// GR改修 件名の文字化け対応
+                            if($this->getEncoding($decoded_value[0]) === 'ISO-2022-JP-MS'){
+                                $value = $this->convertEncoding($decoded_value[0]->text, 'ISO-2022-JP-MS');
+                            }else{
+                                $value = $decoded_value[0]->text;
+                            }
+                            // $value = $decoded_value[0]->text;// こちらが元
                         }
                     }
                 }
