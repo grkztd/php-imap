@@ -458,7 +458,7 @@ class Header {
             $is_utf8_base = $this->is_uft8($value);
 
             if($decoder === 'utf-8' && extension_loaded('imap')) {
-                $value = \imap_utf8($value);
+                $value = $this->is_uft8($value) ? \imap_utf8(str_replace(" ", "", $value)) : \imap_utf8($value);// GR改修 Miraieなどの件名対策
                 $is_utf8_base = $this->is_uft8($value);
                 if ($is_utf8_base) {
                     $value = mb_decode_mimeheader($value);
