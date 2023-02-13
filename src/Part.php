@@ -177,7 +177,7 @@ class Part {
             $chunk = explode("''",$str);
             $this->filename = urldecode(mb_convert_encoding($chunk[1], "UTF-8", $chunk[0]));// GR RFC2231に対応
         }else{
-            $this->filename = $this->header->get("filename");
+            $this->filename = mb_decode_mimeheader($this->header->get("filename"));// Crane & i　の文字化け対処
         }
 
         if(!empty($this->header->get("id"))) {
